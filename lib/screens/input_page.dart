@@ -14,6 +14,8 @@ enum Gender {
   female,
 }
 
+enum SystemOfCalculating { metric, imperial }
+
 class InputPage extends StatefulWidget {
   @override
   _InputPageState createState() => _InputPageState();
@@ -21,19 +23,61 @@ class InputPage extends StatefulWidget {
 
 class _InputPageState extends State<InputPage> {
   Gender selectedGender;
-  int height = 180;
-  int weight = 75;
+  SystemOfCalculating selectedSystem;
+  int metricHeight = 180;
+  int metricWeight = 75;
   int age = 25;
+  double imperialHeight = 5.7;
+  int imperialWeight = 165;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Center(child: Text('BMI CALCULATOR')),
+          title: Center(
+            child: Text('BMI CALCULATOR'),
+          ),
         ),
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
+            Expanded(
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: ReusableCard(
+                      tap: () {
+                        setState(() {
+                          selectedSystem = SystemOfCalculating.metric;
+                        });
+                      },
+                      cardChild: IconContent(
+                        icon: FontAwesomeIcons.mars,
+                        label: 'METRIC',
+                      ),
+                      colour: selectedSystem == SystemOfCalculating.metric
+                          ? kActiveCardColor
+                          : kInactiveCardColor,
+                    ),
+                  ),
+                  Expanded(
+                      child: ReusableCard(
+                    tap: () {
+                      setState(() {
+                        selectedSystem = SystemOfCalculating.imperial;
+                      });
+                    },
+                    cardChild: IconContent(
+                      icon: FontAwesomeIcons.venus,
+                      label: 'IMPERIAL',
+                    ),
+                    colour: selectedSystem == SystemOfCalculating.imperial
+                        ? kActiveCardColor
+                        : kInactiveCardColor,
+                  )),
+                ],
+              ),
+            ),
             Expanded(
               child: Row(
                 children: <Widget>[
@@ -79,6 +123,9 @@ class _InputPageState extends State<InputPage> {
                     cardChild: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
+                        SizedBox(
+                          height: 5.0,
+                        ),
                         Text(
                           'HEIGHT',
                           style: kLabelTextStyle,
@@ -89,11 +136,15 @@ class _InputPageState extends State<InputPage> {
                           textBaseline: TextBaseline.alphabetic,
                           children: <Widget>[
                             Text(
-                              height.toString(),
+                              selectedSystem == SystemOfCalculating.metric
+                                  ? metricHeight.toString()
+                                  : imperialHeight.toString(),
                               style: kNumberTextStyle,
                             ),
                             Text(
-                              'cm',
+                              selectedSystem == SystemOfCalculating.metric
+                                  ? 'cm'
+                                  : 'inch',
                               style: kLabelTextStyle,
                             )
                           ],
@@ -105,17 +156,27 @@ class _InputPageState extends State<InputPage> {
                             thumbColor: Color(0xFFEB1555),
                             overlayColor: Color(0x29EB1555),
                             thumbShape:
-                                RoundSliderThumbShape(enabledThumbRadius: 15.0),
+                                RoundSliderThumbShape(enabledThumbRadius: 10.0),
                             overlayShape:
-                                RoundSliderOverlayShape(overlayRadius: 30.0),
+                                RoundSliderOverlayShape(overlayRadius: 25.0),
                           ),
                           child: Slider(
-                              value: height.toDouble(),
-                              min: 120.0,
-                              max: 220.0,
+                              value:
+                                  selectedSystem == SystemOfCalculating.metric
+                                      ? metricHeight.toDouble()
+                                      : imperialHeight,
+                              min: selectedSystem == SystemOfCalculating.metric
+                                  ? 120.0
+                                  : 3.92,
+                              max: selectedSystem == SystemOfCalculating.metric
+                                  ? 220.0
+                                  : 7.22,
                               onChanged: (double newValue) {
                                 setState(() {
-                                  height = newValue.round();
+                                  selectedSystem == SystemOfCalculating.metric
+                                      ? metricHeight = newValue.round()
+                                      : imperialHeight = double.parse(
+                                          newValue.toStringAsFixed(1));
                                 });
                               }),
                         )
@@ -138,9 +199,22 @@ class _InputPageState extends State<InputPage> {
                             'WEIGHT',
                             style: kLabelTextStyle,
                           ),
-                          Text(
-                            weight.toString(),
-                            style: kNumberTextStyle,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                selectedSystem == SystemOfCalculating.metric
+                                    ? metricWeight.toString()
+                                    : imperialWeight.toString(),
+                                style: kNumberTextStyle,
+                              ),
+                              Text(
+                                selectedSystem == SystemOfCalculating.metric
+                                    ? 'kg'
+                                    : 'lbs',
+                                style: kLabelTextStyle,
+                              ),
+                            ],
                           ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -148,7 +222,9 @@ class _InputPageState extends State<InputPage> {
                               RoundIconButton(
                                 pressed: () {
                                   setState(() {
-                                    weight--;
+                                    selectedSystem == SystemOfCalculating.metric
+                                        ? metricWeight--
+                                        : imperialWeight--;
                                   });
                                 },
                                 icon: FontAwesomeIcons.minus,
@@ -159,7 +235,9 @@ class _InputPageState extends State<InputPage> {
                               RoundIconButton(
                                 pressed: () {
                                   setState(() {
-                                    weight++;
+                                    selectedSystem == SystemOfCalculating.metric
+                                        ? metricWeight++
+                                        : imperialWeight++;
                                   });
                                 },
                                 icon: FontAwesomeIcons.plus,
@@ -218,14 +296,19 @@ class _InputPageState extends State<InputPage> {
             BottomButton(
               buttonTitle: 'CALCULATE',
               onTap: () {
-                CalculatorBrain calc =
-                    CalculatorBrain(height: height, weight: weight);
+                CalculatorBrain calc = CalculatorBrain(
+                    metricHeight: metricHeight,
+                    metricWeight: metricWeight,
+                    imperialWeight: imperialWeight,
+                    imperialHeight: imperialHeight);
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) {
                       return ResultsScreen(
-                        bmiResult: calc.calculateBMI(),
+                        bmiResult: selectedSystem == SystemOfCalculating.metric
+                            ? calc.calculateMetricBMI()
+                            : calc.calculateImperialBMI(),
                         resultText: calc.getResult(),
                         interpretation: calc.getInterpretation(),
                       );
