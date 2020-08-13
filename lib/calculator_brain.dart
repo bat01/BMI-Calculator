@@ -21,9 +21,10 @@ class CalculatorBrain {
 
   String calculateImperialBMI() {
     print(imperialHeight);
+    print((imperialHeight * 10) % 10);
     _bmi = 703 *
         imperialWeight /
-        pow(imperialHeight.toInt() * 12 + imperialHeight % 10, 2);
+        pow(imperialHeight.toInt() * 12 + (imperialHeight * 10) % 10, 2);
     return _bmi.toStringAsFixed(1);
   }
 

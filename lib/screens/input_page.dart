@@ -167,10 +167,10 @@ class _InputPageState extends State<InputPage> {
                                       : imperialHeight,
                               min: selectedSystem == SystemOfCalculating.metric
                                   ? 120.0
-                                  : 3.92,
+                                  : 3.9,
                               max: selectedSystem == SystemOfCalculating.metric
                                   ? 220.0
-                                  : 7.22,
+                                  : 7.2,
                               onChanged: (double newValue) {
                                 setState(() {
                                   selectedSystem == SystemOfCalculating.metric
